@@ -31,3 +31,11 @@
 #define DBG_UNIX_LOG(...)
 #endif
 
+#define ACL_HASH_LOOKUP_TIMER 0
+#if ACL_HASH_LOOKUP_TIMER == 1
+#define INIT_TIMER clock_t start = clock();
+#define STOP_TIMER(...) do {  clock_t end = clock(); float seconds = (float)(end - start) / CLOCKS_PER_SEC; clib_warning(__VA_ARGS__" %.2f\n", seconds);} while (0);
+#else
+#define INIT_TIMER
+#define STOP_TIMER(...)
+#endif

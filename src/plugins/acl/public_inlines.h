@@ -600,7 +600,7 @@ multi_acl_match_get_applied_ace_index (acl_main_t * am, int is_ip6, fa_5tuple_t 
       kv_key->pkt.as_u64 = tmp_pkt.as_u64;
 
       int res =
-	clib_bihash_search_inline_2_48_8 (&am->acl_lookup_hash, &kv, &result);
+        clib_bihash_search_inline_2_48_8 (&am->acl_lookup_hash, &kv, &result);
 
       if (res == 0)
 	{
@@ -681,6 +681,18 @@ acl_plugin_match_5tuple_inline (void *p_acl_main, u32 lc_index,
   }
 }
 
-
+always_inline
+void sanitize_mask_and_address_value(ip46_address_t* address, u32 prefix_len, int is_ip6) {
+    int i, byte, bit, bitnum;
+    int width = is_ip6 ? 128 : 32;
+    u8* to_store = is_ip6 ? address->ip6.as_u8 : address->ip4.as_u8;
+    for (i = prefix_len; i < width; i++)
+    {
+        bitnum = (7 - (i & 7));
+        byte = i / 8;
+        bit = 1 << bitnum;
+        to_store[byte] ^= (to_store[byte] & bit);
+    }
+}
 
 #endif

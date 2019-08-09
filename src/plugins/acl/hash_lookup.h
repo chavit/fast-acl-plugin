@@ -27,7 +27,7 @@
  * during the packet processing
  */
 
-void hash_acl_apply(acl_main_t *am, u32 lc_index, int acl_index, u32 acl_position);
+void hash_acl_apply(acl_main_t *am, u32 lc_index, u32* acls);
 
 /* Remove the ACL from the packet processing in a given lookup context */
 
@@ -43,5 +43,14 @@ void hash_acl_delete(acl_main_t *am, int acl_index);
 
 /* return if there is already a filled-in hash acl info */
 int hash_acl_exists(acl_main_t *am, int acl_index);
+
+/*
+ * activate and deactivate hash entries, used by constructing algorithms
+ */
+
+u32 activate_applied_ace_hash_entry(acl_main_t *am, u32 lc_index, applied_hash_ace_entry_t **applied_hash_aces, u32 new_index);
+
+void deactivate_applied_ace_hash_entry(acl_main_t *am, u32 lc_index, applied_hash_ace_entry_t **applied_hash_aces, u32 new_index);
+
 
 #endif

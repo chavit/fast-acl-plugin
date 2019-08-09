@@ -18,6 +18,9 @@ add_vpp_plugin(acl
   lookup_context.c
   sess_mgmt_node.c
   dataplane_node.c
+  sax_pac.c
+  tuple_merge.c
+  tuple_space_search.c
 
   MULTIARCH_SOURCES
   dataplane_node.c

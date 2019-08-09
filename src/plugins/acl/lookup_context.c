@@ -164,11 +164,8 @@ unlock_acl_vec(u32 lc_index, u32 *acls)
 static void
 apply_acl_vec(u32 lc_index, u32 *acls)
 {
-  int i;
   acl_main_t *am = &acl_main;
-
-  for(i=0; i<vec_len(acls); i++)
-    hash_acl_apply(am, lc_index, acls[i], i);
+  hash_acl_apply(am, lc_index, acls);
 }
 
 

@@ -42,7 +42,7 @@
 
 #define SESSION_PURGATORY_TIMEOUT_USEC 10
 
-#define ACL_PLUGIN_HASH_LOOKUP_HEAP_SIZE (2 << 25)
+#define ACL_PLUGIN_HASH_LOOKUP_HEAP_SIZE (2 << 26)
 #define ACL_PLUGIN_HASH_LOOKUP_HASH_BUCKETS 65536
 #define ACL_PLUGIN_HASH_LOOKUP_HASH_MEMORY (2 << 25)
 
@@ -194,12 +194,14 @@ typedef struct {
   /* Do we use hash-based ACL matching or linear */
   int use_hash_acl_matching;
 
-  /* Do we use the TupleMerge for hash ACLs or not */
-  int use_tuple_merge;
+  /* Selected algorithm for the construction of hash lookup groups */
+  int hash_lookup_constructing_algorithm;
 
   /* Max collision vector length before splitting the tuple */
 #define TM_SPLIT_THRESHOLD 39
-  int tuple_merge_split_threshold;
+#define SAX_PAC_SPLIT_THRESHOLD 3
+
+  int split_threshold;
 
   /* a pool of all mask types present in all ACEs */
   ace_mask_type_entry_t *ace_mask_type_pool;
@@ -375,6 +377,12 @@ typedef enum {
   ACL_FA_REQ_SESS_RESCHEDULE = 0,
   ACL_FA_N_REQ,
 } acl_fa_sess_req_t;
+
+enum hash_lookup_constructing_algorithm_t {
+    TUPLE_SPACE_SEARCH = 0,
+    TUPLE_MERGE,
+    SAX_PAC
+};
 
 void aclp_post_session_change_request(acl_main_t *am, u32 target_thread, u32 target_session, acl_fa_sess_req_t request_type);
 void aclp_swap_wip_and_pending_session_change_requests(acl_main_t *am, u32 target_thread);

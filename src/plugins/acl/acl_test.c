@@ -603,6 +603,7 @@ api_acl_add_replace_from_file (vat_main_t * vam)
     int rule_idx = -1;
     int n_rules = 0;
     int is_permit = 0;
+    int is_pretend_ipv6 = 0;
     int append_default_permit = 0;
     u32 tcpflags = 0, tcpmask = 0;
     ip4_address_t src_v4address, dst_v4address;
@@ -633,6 +634,10 @@ api_acl_add_replace_from_file (vat_main_t * vam)
 	  {
 	    append_default_permit = 1;
 	  }
+        else if (unformat(input, "pretend-ipv6"))
+      {
+        is_pretend_ipv6 = 1;
+      }
 	else
 	  break;
       }
@@ -666,7 +671,9 @@ api_acl_add_replace_from_file (vat_main_t * vam)
 	    rule_idx++;
 	    vec_validate_acl_rules(rules, rule_idx);
 
-	    rules[rule_idx].is_ipv6 = 0;
+        clib_memset(rules[rule_idx].src_ip_addr,  0, 16*sizeof (u8));
+        clib_memset(rules[rule_idx].dst_ip_addr,  0, 16*sizeof (u8));
+        rules[rule_idx].is_ipv6 = is_pretend_ipv6;
 	    rules[rule_idx].is_permit = is_permit;
 	    memcpy (rules[rule_idx].src_ip_addr, &src_v4address, 4);
 	    rules[rule_idx].src_ip_prefix_len = src_prefix_length;

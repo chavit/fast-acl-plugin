@@ -431,6 +431,8 @@ acl_add_list (u32 count, vl_api_acl_rule_t rules[],
 	}
       r->src_prefixlen = rules[i].src_ip_prefix_len;
       r->dst_prefixlen = rules[i].dst_ip_prefix_len;
+      sanitize_mask_and_address_value(&r->src, r->src_prefixlen, r->is_ipv6);
+      sanitize_mask_and_address_value(&r->dst, r->dst_prefixlen, r->is_ipv6);
       r->proto = rules[i].proto;
       r->src_port_or_type_first = ntohs (rules[i].srcport_or_icmptype_first);
       r->src_port_or_type_last = ntohs (rules[i].srcport_or_icmptype_last);
@@ -3499,8 +3501,8 @@ acl_plugin_config (vlib_main_t * vm, unformat_input_t * input)
   u32 hash_lookup_hash_buckets;
   uword hash_lookup_hash_memory;
   u32 reclassify_sessions;
-  u32 use_tuple_merge;
-  u32 tuple_merge_split_threshold;
+  u32 hash_lookup_constructing_algorithm;
+  u32 split_threshold;
 
   while (unformat_check_input (input) != UNFORMAT_END_OF_INPUT)
     {
@@ -3533,13 +3535,14 @@ acl_plugin_config (vlib_main_t * vm, unformat_input_t * input)
 	    (input, "hash lookup hash memory %U", unformat_memory_size,
 	     &hash_lookup_hash_memory))
 	am->hash_lookup_hash_memory = hash_lookup_hash_memory;
-      else if (unformat (input, "use tuple merge %d", &use_tuple_merge))
-	am->use_tuple_merge = use_tuple_merge;
       else
 	if (unformat
-	    (input, "tuple merge split threshold %d",
-	     &tuple_merge_split_threshold))
-	am->tuple_merge_split_threshold = tuple_merge_split_threshold;
+	    (input, "hash lookup constructing algorithm %d",
+	     &hash_lookup_constructing_algorithm))
+	am->hash_lookup_constructing_algorithm =
+	  hash_lookup_constructing_algorithm;
+      else if (unformat (input, "split threshold %d", &split_threshold))
+	am->split_threshold = split_threshold;
 
       else if (unformat (input, "reclassify sessions %d",
 			 &reclassify_sessions))
@@ -3650,10 +3653,17 @@ acl_init (vlib_main_t * vm)
 
   /* use the new fancy hash-based matching */
   am->use_hash_acl_matching = 1;
-  /* use tuplemerge by default */
-  am->use_tuple_merge = 1;
+  /* use sax-pac by default */
+  am->hash_lookup_constructing_algorithm = SAX_PAC;
   /* Set the default threshold */
-  am->tuple_merge_split_threshold = TM_SPLIT_THRESHOLD;
+  if (am->hash_lookup_constructing_algorithm == TUPLE_MERGE)
+    {
+      am->split_threshold = TM_SPLIT_THRESHOLD;
+    }
+  if (am->hash_lookup_constructing_algorithm == SAX_PAC)
+    {
+      am->split_threshold = SAX_PAC_SPLIT_THRESHOLD;
+    }
 
   am->interface_acl_user_id =
     acl_plugin.register_user_module ("interface ACL", "sw_if_index",
